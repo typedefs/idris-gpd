@@ -5,13 +5,15 @@ import Data.Vect
 %access public export
 %default total
 
-splitList : (k : Nat) -> List Bool -> Vect m Bool -> Maybe (Vect (k+m) Bool, List Bool)
-splitList {m}  Z    rem        acc = Just (reverse acc, rem)
+splitList : (k : Nat) -> List Bool -> Vect m Bool -> Maybe (Vect (m+k) Bool, List Bool)
+splitList {m}  Z    rem        acc = Just (rewrite plusCommutative m 0 in reverse acc, rem)
 splitList     (S _) []         _   = Nothing
-splitList {m} (S l) (r :: rem) acc = rewrite plusCommutative 1 (l+m) in 
-                                     rewrite sym $ plusAssociative l m 1 in 
+splitList {m} (S l) (r :: rem) acc = rewrite plusAssociative m 1 l in 
                                      rewrite plusCommutative m 1 in 
-                                     splitList l rem (r :: acc) 
+                                     splitList l rem (r :: acc)    
+     
+parity : Vect n Bool -> Vect 1 Bool
+parity xs = [foldr (/=) False xs]
 
 toNat : Vect n Bool -> Nat
 toNat xs = go xs Z

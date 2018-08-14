@@ -7,3 +7,5 @@ opts = "-p contrib"
 modules = Util
         , FT1
         , FT2
+        , DT
+        , DTX

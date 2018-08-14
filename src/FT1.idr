@@ -17,7 +17,7 @@ interp (Word n)     = Vect n Bool
 interp (Prod t1 t2) = (interp t1, interp t2)
 
 parse : (f : FT) -> List Bool -> Maybe (interp f, List Bool)
-parse (Word n)     xs = rewrite plusCommutative 0 n in splitList n xs []
+parse (Word n)     xs = splitList n xs []
 parse (Prod t1 t2) xs = do (x1, r1) <- parse t1 xs
                            (x2, r2) <- parse t2 r1
                            pure $ ((x1, x2), r2)
