@@ -35,7 +35,29 @@ lenWord = Sigma (Leaf (Fin $ power 2 8)) (\n => Leaf (Vect (toNat n) Bool))
 encodeLenWord : DTX DTX.lenWord
 encodeLenWord = SigmaX (ConvX int8) (\len => copy)
   where
-  encode : Fin 256 -> Vect 8 Bool
-  decode : Vect 8 Bool -> Fin 256
   int8 : Conversion (Leaf (Fin $ power 2 8)) (Leaf (Vect 8 Bool))
-  int8 = Convert encode (Just . decode) ?prf
+  int8 = Convert encode (Just . decode) (\x => really_believe_me x)  -- YOLO
+
+mutual   
+  extendType : {t : DT} -> DTX t -> DT
+  extendType (ConvX {t2} c)     = t2
+  extendType (ProdX dl dr)      = Prod (extendType dl) (extendType dr)
+  extendType (SigmaX {d} dc df) = Sigma (extendType dc) (\iedc => maybe (Leaf Void) (\it => extendType (df it)) (retractValue dc iedc))
+
+  retractValue : {t : DT} -> (tx : DTX t) -> interp (extendType tx) -> Maybe (interp t)
+  retractValue (ConvX (Convert d u f))  ietx        = u ietx
+  retractValue (ProdX dl dr)           (ietl, ietr) = [| MkPair (retractValue dl ietl) (retractValue dr ietr) |]
+  retractValue (SigmaX {d} dc df)      (it ** ietx) = let tt = retractValue dc it in ?wot
+
+  extendValue : {t : DT} -> (tx : DTX t) -> interp t -> interp (extendType tx)
+  extendValue (ConvX (Convert d u f))  it         = d it
+  extendValue (ProdX dl dr)           (il, ir)    = (extendValue dl il, extendValue dr ir)
+  extendValue (SigmaX dc df)          (it ** idt) = (extendValue dc it ** ?wut)
+
+  retractExtendId : {t : DT} -> (tx : DTX t) -> (d : interp t) -> retractValue tx (extendValue tx d) = Just d
+  retractExtendId (ConvX (Convert _ _ f)) d = f d
+  retractExtendId (ProdX dl dr)  (il, ir) = 
+    rewrite retractExtendId dl il in 
+    rewrite retractExtendId dr ir in 
+    Refl
+  retractExtendId (SigmaX dc df) (it ** idt) = ?wat

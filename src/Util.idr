@@ -1,5 +1,7 @@
 module Util
 
+import Data.Bits
+import Data.Fin
 import Data.Vect
 
 %access public export
@@ -21,4 +23,27 @@ toNat xs = go xs Z
   go : Vect k Bool -> Nat -> Nat
   go [] acc = acc
   go (True :: xs) acc = go xs (S (2 * acc))
-  go (False :: xs) acc = go xs (2 * acc)                                     
+  go (False :: xs) acc = go xs (2 * acc)
+
+-- aka `tabulate`, exists in Control.Isomorphism.Vect in post 1.3 stdlib
+unindex : (Fin n -> a) -> Vect n a
+unindex {n = Z} _ = []
+unindex {n = S k} f = f FZ :: unindex (f . FS)
+      
+encode : Fin (power 2 n) -> Vect n Bool
+encode {n} f = 
+  let bits = intToBits {n} $ finToInteger f in 
+  reverse $ unindex (\f => getBit f bits)
+
+powerNotZ : (n : Nat) -> (k ** power 2 n = S k)
+powerNotZ  Z    = (Z ** Refl)
+powerNotZ (S n) = 
+  let (k ** prf) = powerNotZ n in 
+  rewrite prf in 
+  rewrite plusCommutative k 0 in
+  (k + (S k) ** Refl)  
+
+decode : Vect n Bool -> Fin (power 2 n)
+decode {n} vs = let (k ** prf) = powerNotZ n in 
+                fromMaybe (rewrite prf in the (Fin (S k)) FZ) $ 
+                natToFin (toNat vs) (power 2 n)
