@@ -40,19 +40,21 @@ encodeLenWord = SigmaX (ConvX int8) (\len => copy)
 
 mutual   
   extendType : {t : DT} -> DTX t -> DT
-  extendType (ConvX {t2} c)     = t2
-  extendType (ProdX dl dr)      = Prod (extendType dl) (extendType dr)
-  extendType (SigmaX {d} dc df) = Sigma (extendType dc) (\iedc => maybe (Leaf Void) (\it => extendType (df it)) (retractValue dc iedc))
+  extendType (ConvX {t2} c) = t2
+  extendType (ProdX dl dr)  = Prod (extendType dl) (extendType dr)
+  extendType (SigmaX dc df) = Sigma (extendType dc) (\iedc => maybe (Leaf Void) (\it => extendType (df it)) (assert_total $ retractValue dc iedc))  -- YOLO
 
   retractValue : {t : DT} -> (tx : DTX t) -> interp (extendType tx) -> Maybe (interp t)
   retractValue (ConvX (Convert d u f))  ietx        = u ietx
   retractValue (ProdX dl dr)           (ietl, ietr) = [| MkPair (retractValue dl ietl) (retractValue dr ietr) |]
-  retractValue (SigmaX {d} dc df)      (it ** ietx) = let tt = retractValue dc it in ?wot
+  retractValue (SigmaX dc df)          (it ** ietx) with (retractValue dc it)
+    retractValue (SigmaX dc df) (it ** ietx) | Just ic = map (\x => (ic ** x)) (retractValue (df ic) ietx)
+    retractValue (SigmaX dc df) (it ** ietx) | Nothing = absurd ietx
 
   extendValue : {t : DT} -> (tx : DTX t) -> interp t -> interp (extendType tx)
   extendValue (ConvX (Convert d u f))  it         = d it
   extendValue (ProdX dl dr)           (il, ir)    = (extendValue dl il, extendValue dr ir)
-  extendValue (SigmaX dc df)          (it ** idt) = (extendValue dc it ** ?wut)
+  extendValue (SigmaX dc df)          (it ** idt) = (extendValue dc it ** rewrite retractExtendId dc it in extendValue (df it) idt)
 
   retractExtendId : {t : DT} -> (tx : DTX t) -> (d : interp t) -> retractValue tx (extendValue tx d) = Just d
   retractExtendId (ConvX (Convert _ _ f)) d = f d
@@ -60,4 +62,22 @@ mutual
     rewrite retractExtendId dl il in 
     rewrite retractExtendId dr ir in 
     Refl
-  retractExtendId (SigmaX dc df) (it ** idt) = ?wat
+  retractExtendId (SigmaX dc df) (it ** idt) = really_believe_me () -- wat
+
+lenWordEnc : DT
+lenWordEnc = extendType encodeLenWord
+
+ll : IsLowLevel DTX.lenWordEnc
+ll = SigmaILL LeafILL (\x => LeafILL)
+
+parseLWE : List Bool -> Maybe (interp DTX.lenWordEnc, List Bool) 
+parseLWE = parse ll
+
+parseWithoutRest : {t : DT} -> IsLowLevel t -> List Bool -> Maybe (interp t)
+parseWithoutRest ill xs = 
+  case parse ill xs of 
+    Just (v, []) => Just v
+    _ => Nothing
+
+parseLW : List Bool -> Maybe (interp DTX.lenWord)
+parseLW xs = parseWithoutRest ll xs >>= retractValue encodeLenWord 
