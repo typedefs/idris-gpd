@@ -5,6 +5,8 @@ import Util
 
 %default total
 
+-- 2 Simple Universes
+
 data FT : Type where
   Word : Nat -> FT
   Prod : FT -> FT -> FT

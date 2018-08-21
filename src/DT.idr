@@ -6,6 +6,8 @@ import Util
 %access public export
 %default total
 
+-- 3 Beyond Bits
+
 mutual 
   data DT : Type where
     Leaf  : Type -> DT
@@ -16,6 +18,8 @@ mutual
   interp (Leaf a)     = a
   interp (Prod t1 t2) = (interp t1, interp t2)
   interp (Sigma t f)  = (it : interp t ** interp (f it))
+
+-- 3.1 Low-Level Descriptions
 
 data IsLowLevel : DT -> Type where
   LeafILL  : IsLowLevel (Leaf (Vect n Bool))  
@@ -36,6 +40,8 @@ pp : IsLowLevel t -> interp t -> List Bool
 pp  LeafILL             is          = toList is
 pp (ProdILL ill1 ill2)  (x1, x2)    = pp ill1 x1 ++ pp ill2 x2
 pp (SigmaILL illx illf) (ix ** ifx) = pp illx ix ++ pp (illf ix) ifx
+
+-- 3.2 A High-Level Example
 
 data Tag = Boolean | Floating
 

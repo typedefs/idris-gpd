@@ -2,23 +2,12 @@ module DTX
 
 import Data.Vect
 import DT
+import Conversion
 import Util
 
 %default total
 
-data Conversion : (t1, t2 : DT) -> Type where 
-  Convert : (d : interp t1 -> interp t2) 
-         -> (u : interp t2 -> Maybe (interp t1)) 
-         -> ((x : interp t1) -> u (d x) = Just x) 
-         -> Conversion t1 t2 
-    
-idConv : Conversion t t 
-idConv = Convert id (Just . id) (\x => Refl)
-
-compConv : Conversion a b -> Conversion b c -> Conversion a c
-compConv (Convert ab ba prf1) (Convert bc cb prf2) = 
-  Convert (bc . ab) (\cc => cb cc >>= ba) 
-    (\x => rewrite prf2 (ab x) in prf1 x)
+-- 4 Data Conversion
 
 data DTX : DT -> Type where
   ConvX  : Conversion t1 t2 -> DTX t1
@@ -45,14 +34,15 @@ mutual
   extendType (SigmaX dc df) = Sigma (extendType dc) (\iedc => maybe (Leaf Void) (\it => extendType (df it)) (assert_total $ retractValue dc iedc))  -- YOLO
 
   retractValue : {t : DT} -> (tx : DTX t) -> interp (extendType tx) -> Maybe (interp t)
-  retractValue (ConvX (Convert d u f))  ietx        = u ietx
+  retractValue (ConvX (Convert _ u _))  ietx        = u ietx
   retractValue (ProdX dl dr)           (ietl, ietr) = [| MkPair (retractValue dl ietl) (retractValue dr ietr) |]
   retractValue (SigmaX dc df)          (it ** ietx) with (retractValue dc it)
     retractValue (SigmaX dc df) (it ** ietx) | Just ic = map (\x => (ic ** x)) (retractValue (df ic) ietx)
     retractValue (SigmaX dc df) (it ** ietx) | Nothing = absurd ietx
 
+mutual
   extendValue : {t : DT} -> (tx : DTX t) -> interp t -> interp (extendType tx)
-  extendValue (ConvX (Convert d u f))  it         = d it
+  extendValue (ConvX (Convert d _ _))  it         = d it
   extendValue (ProdX dl dr)           (il, ir)    = (extendValue dl il, extendValue dr ir)
   extendValue (SigmaX dc df)          (it ** idt) = (extendValue dc it ** rewrite retractExtendId dc it in extendValue (df it) idt)
 
@@ -62,8 +52,10 @@ mutual
     rewrite retractExtendId dl il in 
     rewrite retractExtendId dr ir in 
     Refl
-  retractExtendId (SigmaX dc df) (it ** idt) = really_believe_me () -- wat
-
+  retractExtendId (SigmaX {c} dc df) (it ** idt) = 
+    --rewrite retractExtendId {t=c} dc it in
+    really_believe_me () 
+    
 lenWordEnc : DT
 lenWordEnc = extendType encodeLenWord
 
@@ -81,3 +73,20 @@ parseWithoutRest ill xs =
 
 parseLW : List Bool -> Maybe (interp DTX.lenWord)
 parseLW xs = parseWithoutRest ll xs >>= retractValue encodeLenWord 
+
+-- 4.1 Repeated Extension
+
+data DTXStar : DT -> DT -> Type where 
+  Base : DTXStar t t 
+  Step : DTXStar t1 t2 -> (tx : DTX t2) -> DTXStar t1 (extendType tx)
+
+extendTypeStar : DTXStar t1 t2 -> DT
+extendTypeStar {t2}  _ = t2
+
+extendValueStar : DTXStar t1 t2 -> interp t1 -> interp t2
+extendValueStar  Base        i1 = i1
+extendValueStar (Step dxs p) i1 = extendValue p (extendValueStar dxs i1)
+
+retractValueStar : DTXStar t1 t2 -> interp t2 -> Maybe (interp t1)
+retractValueStar  Base        i1 = Just i1
+retractValueStar (Step dxs p) i1 = (retractValue p i1) >>= (retractValueStar dxs)
