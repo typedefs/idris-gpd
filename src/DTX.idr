@@ -29,7 +29,7 @@ encodeLenWord = SigmaX (ConvX int8) (\len => copy)
 
 mutual   
   extendType : {t : DT} -> DTX t -> DT
-  extendType (ConvX {t2} c) = t2
+  extendType (ConvX {t2} _) = t2
   extendType (ProdX dl dr)  = Prod (extendType dl) (extendType dr)
   extendType (SigmaX dc df) = Sigma (extendType dc) (\iedc => maybe (Leaf Void) (\it => extendType (df it)) (assert_total $ retractValue dc iedc))  -- YOLO
 
@@ -47,12 +47,12 @@ mutual
   extendValue (SigmaX dc df)          (it ** idt) = (extendValue dc it ** rewrite retractExtendId dc it in extendValue (df it) idt)
 
   retractExtendId : {t : DT} -> (tx : DTX t) -> (d : interp t) -> retractValue tx (extendValue tx d) = Just d
-  retractExtendId (ConvX (Convert _ _ f)) d = f d
-  retractExtendId (ProdX dl dr)  (il, ir) = 
+  retractExtendId (ConvX (Convert _ _ f))  d          = f d
+  retractExtendId (ProdX dl dr)           (il, ir)    = 
     rewrite retractExtendId dl il in 
     rewrite retractExtendId dr ir in 
     Refl
-  retractExtendId (SigmaX {c} dc df) (it ** idt) = 
+  retractExtendId (SigmaX {c} dc df)      (it ** idt) = 
     --rewrite retractExtendId {t=c} dc it in
     really_believe_me () 
     
