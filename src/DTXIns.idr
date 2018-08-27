@@ -6,6 +6,7 @@ import Conversion
 import Util
 
 %default total
+%access public export
 
 -- 5 Inserting New Fields
 
@@ -97,14 +98,14 @@ retractAndCheckS tx chk itx =
 
 -- 5.1 Beyond Top-Level Insertion
   
-vecNats : DT 
-vecNats = Sigma (Leaf Nat) (\len => Leaf (Vect len Nat))
+--vecNats : DT 
+--vecNats = Sigma (Leaf Nat) (\len => Leaf (Vect len Nat))
 
-insertMax : DTXS DTXIns.vecNats
-insertMax = SigmaX copy iMax 
-  where 
-  maxVec : interp (DTXIns.vecNats) -> Nat
-  maxVec (it ** vs) = ?problem
-  iMax : (len : Nat) -> DTX DTXIns.vecNats (Leaf (Vect len Nat)) 
-  iMax Z      = copy 
-  iMax (S n ) = InsX (Leaf Nat) RightSide maxVec 
+--insertMax : DTXS DTXIns.vecNats
+--insertMax = SigmaX copy iMax 
+--  where 
+--  maxVec : interp (DTXIns.vecNats) -> Nat
+--  maxVec (it ** vs) = ?problem
+--  iMax : (len : Nat) -> DTX DTXIns.vecNats (Leaf (Vect len Nat)) 
+--  iMax Z     = copy 
+--  iMax (S n) = InsX (Leaf Nat) RightSide maxVec 

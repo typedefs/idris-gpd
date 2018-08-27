@@ -37,3 +37,24 @@ data DTX : (top : DT) -> (t : DT) -> (s : Subtree t top) -> Type where
   ProdX  : DTX top l (subTrans s (SubFst SubStop)) -> DTX top r (subTrans s (SubSnd SubStop)) -> DTX top (Prod l r) s
   SigmaX : DTX top c (subTrans s (SubPi1 SubStop)) -> ((x : interp c) -> DTX top (d x) (subTrans s (SubPi2 x SubStop))) -> DTX top (Sigma c d) s
   InsX   : (t1 : DT) -> Side -> ((d : interp top) -> (v : interp t) -> Select s d v -> interp t1) -> DTX top t s
+
+DTXS : DT -> Type
+DTXS t = DTX t t SubStop
+
+copy : DTX top t s
+copy = ConvX idConv  
+
+vecNats : DT 
+vecNats = Sigma (Leaf Nat) (\len => Leaf (Vect len Nat))
+  
+insertMax : DTXS Subtree.vecNats
+insertMax = SigmaX copy iMax 
+  where 
+  maxVec : (d : (len ** Vect len Nat)) -> (v : Vect (S n) Nat) -> Select {t1 = Subtree.vecNats} (SubPi2 (S n) SubStop) d v -> Nat
+  maxVec _ v _ = vecMax v
+  iMax : (len : Nat) -> DTX Subtree.vecNats (Leaf (Vect len Nat)) (SubPi2 len SubStop)
+  iMax Z     = copy 
+  iMax (S n) = InsX (Leaf Nat) RightSide maxVec 
+
+InsSimple : (t1 : DT) -> Side -> (interp top -> interp t1) -> DTX top t s
+InsSimple t1 s f = InsX t1 s (\d,_,_ => f d)
