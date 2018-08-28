@@ -52,4 +52,14 @@ taggedUnion = Sigma (Leaf Tag) contents
   contents Boolean = Leaf Bool
   contents Floating = Leaf Double
 
--- roundTrip : {t : DT} -> (ill : IsLowLevel t) -> (d : interp t) -> (rem : List Bool) -> parse ill (pp ill d ++ rem) = Just (d, rem) 
+{-
+roundTrip : {t : DT} -> (ill : IsLowLevel t) -> (d : interp t) -> (rem : List Bool) -> parse ill (pp ill d ++ rem) = Just (d, rem) 
+roundTrip LeafILL           []        rem = Refl
+roundTrip LeafILL           (x :: xs) rem = ?wat1
+roundTrip (ProdILL l r)     (il, ir)  rem = ?wat2
+roundTrip (SigmaILL ic ifc) (it**fit) rem = 
+  rewrite sym $ appendAssociative (pp ic it) (pp (ifc it) fit) rem in 
+  rewrite roundTrip ic it (pp (ifc it) fit ++ rem) in
+  rewrite roundTrip (ifc it) fit rem in  -- breaks here
+  ?wat3
+-}

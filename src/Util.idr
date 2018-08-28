@@ -13,7 +13,7 @@ splitList     (S _) []         _   = Nothing
 splitList {m} (S l) (r :: rem) acc = rewrite plusAssociative m 1 l in 
                                      rewrite plusCommutative m 1 in 
                                      splitList l rem (r :: acc)
-                                     
+
 parity : Vect n Bool -> Vect 1 Bool
 parity xs = [foldr (/=) False xs]
 
@@ -29,9 +29,9 @@ toNat xs = go xs Z
 unindex : (Fin n -> a) -> Vect n a
 unindex {n = Z} _ = []
 unindex {n = S k} f = f FZ :: unindex (f . FS)
-      
-encode : Fin (power 2 n) -> Vect n Bool
-encode {n} f = 
+
+encodeFin : Fin (power 2 n) -> Vect n Bool
+encodeFin {n} f = 
   let bits = intToBits {n} $ finToInteger f in 
   reverse $ unindex (\f => getBit f bits)
 
@@ -43,8 +43,8 @@ powerNotZ (S n) =
   rewrite plusCommutative k 0 in
   (k + (S k) ** Refl)  
 
-decode : Vect n Bool -> Fin (power 2 n)
-decode {n} vs = let (k ** prf) = powerNotZ n in 
+decodeFin : Vect n Bool -> Fin (power 2 n)
+decodeFin {n} vs = let (k ** prf) = powerNotZ n in 
                 fromMaybe (rewrite prf in the (Fin (S k)) FZ) $ 
                 natToFin (toNat vs) (power 2 n)
 

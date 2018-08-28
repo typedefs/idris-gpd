@@ -2,7 +2,7 @@ package genpacdesc
 
 sourcedir = src
 
-opts = "-p contrib"
+opts = "-p contrib -p bi"
 
 modules = Util
         , FT1

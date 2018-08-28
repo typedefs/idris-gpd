@@ -22,10 +22,10 @@ lenWord : DT
 lenWord = Sigma (Leaf (Fin $ power 2 8)) (\n => Leaf (Vect (toNat n) Bool))
 
 encodeLenWord : DTX DTX.lenWord
-encodeLenWord = SigmaX (ConvX int8) (\len => copy)
+encodeLenWord = SigmaX (ConvX int8) (\_ => copy)
   where
   int8 : Conversion (Leaf (Fin $ power 2 8)) (Leaf (Vect 8 Bool))
-  int8 = Convert encode (Just . decode) (\x => really_believe_me x)  -- YOLO
+  int8 = Convert encodeFin (Just . decodeFin) (\x => really_believe_me x)  -- YOLO
 
 mutual   
   extendType : {t : DT} -> DTX t -> DT

@@ -28,4 +28,15 @@ pp : (f : FT) -> interp f -> List Bool
 pp (Word n)     bs       = toList bs
 pp (Prod t1 t2) (x1, x2) = pp t1 x1 ++ pp t2 x2
 
---roundTrip' : (f : FT) -> (x : interp f) -> (rem : List Bool) -> parse f (pp f x ++ rem) = Just (x, rem)
+{-
+roundTrip' : (f : FT) -> (x : interp f) -> (rem : List Bool) -> parse f (pp f x ++ rem) = Just (x, rem)
+roundTrip' (Word Z)     []       rem = Refl
+roundTrip' (Word (S n)) (x::xs)  rem = 
+  let ih = roundTrip' (Word n) xs rem in 
+  ?wat
+roundTrip' (Prod l r)   (il, ir) rem = 
+  rewrite sym $ appendAssociative (pp l il) (pp r ir) rem in   -- this is how it should go, but idris doesn't agree
+  rewrite roundTrip' l il (pp r ir ++ rem) in                  --                 
+  rewrite roundTrip' r ir rem in                               --
+  Refl
+-}

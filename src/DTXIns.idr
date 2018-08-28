@@ -81,7 +81,7 @@ encodeLenWord : DTXS DTXIns.lenWord
 encodeLenWord = SigmaX (ConvX int8) (\len => copy)
   where
   int8 : Conversion (Leaf (Fin $ power 2 8)) (Leaf (Vect 8 Bool))
-  int8 = Convert encode (Just . decode) (\x => really_believe_me x)  -- YOLO
+  int8 = Convert encodeFin (Just . decodeFin) (\x => really_believe_me x)  -- YOLO
 
 lenWordEnc : DT
 lenWordEnc = extendTypeS encodeLenWord
