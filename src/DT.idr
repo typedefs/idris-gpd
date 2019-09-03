@@ -8,12 +8,12 @@ import Util
 
 -- 3 Beyond Bits
 
-mutual 
+mutual
   data DT : Type where
     Leaf  : Type -> DT
     Prod  : DT -> DT -> DT
     Sigma : (t : DT) -> (interp t -> DT) -> DT
-    
+
   interp : DT -> Type
   interp (Leaf a)     = a
   interp (Prod t1 t2) = (interp t1, interp t2)
@@ -22,11 +22,11 @@ mutual
 -- 3.1 Low-Level Descriptions
 
 data IsLowLevel : DT -> Type where
-  LeafILL  : IsLowLevel (Leaf (Vect n Bool))  
+  LeafILL  : IsLowLevel (Leaf (Vect n Bool))
   ProdILL  : IsLowLevel l -> IsLowLevel r -> IsLowLevel (Prod l r)
   SigmaILL : IsLowLevel c -> ((x : interp c) -> IsLowLevel (f x)) -> IsLowLevel (Sigma c f)
 
-parse : IsLowLevel t -> List Bool -> Maybe (interp t, List Bool)  
+parse : IsLowLevel t -> List Bool -> Maybe (interp t, List Bool)
 parse (LeafILL {n})        bs = splitList n bs []
 parse (ProdILL ill1 ill2)  bs = do (x1, r1) <- parse ill1 bs
                                    (x2, r2) <- parse ill2 r1
@@ -53,12 +53,12 @@ taggedUnion = Sigma (Leaf Tag) contents
   contents Floating = Leaf Double
 
 {-
-roundTrip : {t : DT} -> (ill : IsLowLevel t) -> (d : interp t) -> (rem : List Bool) -> parse ill (pp ill d ++ rem) = Just (d, rem) 
+roundTrip : {t : DT} -> (ill : IsLowLevel t) -> (d : interp t) -> (rem : List Bool) -> parse ill (pp ill d ++ rem) = Just (d, rem)
 roundTrip LeafILL           []        rem = Refl
 roundTrip LeafILL           (x :: xs) rem = ?wat1
 roundTrip (ProdILL l r)     (il, ir)  rem = ?wat2
-roundTrip (SigmaILL ic ifc) (it**fit) rem = 
-  rewrite sym $ appendAssociative (pp ic it) (pp (ifc it) fit) rem in 
+roundTrip (SigmaILL ic ifc) (it**fit) rem =
+  rewrite sym $ appendAssociative (pp ic it) (pp (ifc it) fit) rem in
   rewrite roundTrip ic it (pp (ifc it) fit ++ rem) in
   rewrite roundTrip (ifc it) fit rem in  -- breaks here
   ?wat3

@@ -7,13 +7,13 @@ import Util
 
 -- 2.1 Beyond Simple Universes
 
-mutual 
+mutual
   data FT : Type where
     Word  : Nat -> FT
     Prod  : FT -> FT -> FT
     Calc  : (t : FT) -> interp t -> FT
     Sigma : (t : FT) -> (interp t -> FT) -> FT
-    
+
   interp : FT -> Type
   interp (Word n)     = Vect n Bool
   interp (Prod t1 t2) = (interp t1, interp t2)
@@ -21,7 +21,7 @@ mutual
   interp (Sigma t f)  = (it : interp t ** interp (f it))
 
 semidec : (t : FT) -> (x, y : interp t) -> Maybe (x = y)
-semidec (Word n) x y = case decEq x y of 
+semidec (Word n) x y = case decEq x y of
                          Yes prf => Just prf
                          No _ => Nothing
 semidec (Prod t1 t2) (x1, x2) (y1, y2) with (semidec t1 x1 y1, semidec t2 x2 y2)
@@ -43,8 +43,8 @@ parse (Prod t1 t2) bs = do (x1, r1) <- parse t1 bs
                            (x2, r2) <- parse t2 r1
                            pure $ ((x1, x2), r2)
 parse (Calc t v) bs with (parse t bs)
-  parse (Calc t v) bs | Just (y, rem) with (semidec t y v) 
-    parse (Calc t v) bs | Just (v, rem) | Just Refl = Just ((), rem) 
+  parse (Calc t v) bs | Just (y, rem) with (semidec t y v)
+    parse (Calc t v) bs | Just (v, rem) | Just Refl = Just ((), rem)
     parse (Calc t v) bs | Just (y, rem) | Nothing = Nothing
   parse (Calc t v) bs | Nothing = Nothing
 parse (Sigma t f) bs with (parse t bs)
@@ -62,4 +62,3 @@ ft3 : FT
 ft3 = Sigma (Word 8) (\d => Word (toNat d))
 
 --roundTrip' : (f : FT) -> (x : interp f) -> (rem : List Bool) -> parse f (pp f x ++ rem) = Just (x, rem)
-                                     

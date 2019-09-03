@@ -23,15 +23,15 @@ ECN2Bit CE     = [False, False]
 
 Bit2ECN : Vect 2 Bool -> ECN
 Bit2ECN [True,  True ] = NonECT
-Bit2ECN [False, True ] = ECT0  
-Bit2ECN [True,  False] = ECT1  
+Bit2ECN [False, True ] = ECT0
+Bit2ECN [True,  False] = ECT1
 Bit2ECN [False, False] = CE
 
 Lengths : Type
-Lengths = (dl ** ol ** (Le ol 10, Lt (4 * (5 + ol) + dl) (binPow 2 16)))  
+Lengths = (dl ** ol ** (Le ol 10, Lt (4 * (5 + ol) + dl) (binPow 2 16)))
 
 header1 : DT
-header1 = Prod (Leaf Lengths) $ 
+header1 = Prod (Leaf Lengths) $
           Prod (Leaf ECN) $            -- ECN
           Prod (Leaf (Vect 32 Bool))   -- Source
                (Leaf (Vect 32 Bool))   -- Destination
@@ -47,24 +47,24 @@ IPv4Type = Sigma header1 optData
 --mix : (tx : DTX (Prod l r) r) -> (rf : interp (extendType tx) -> Maybe (interp l)) -> ((d1 : interp l) -> (d2 : interp r) -> rf (extendValue tx (d1, d2) d2) = Just d1) -> DTX top (Prod l r)
 --mix tx rf f = ?wat
 
-header2 : DT 
+header2 : DT
 header2 = Prod (Leaf ECN) $                            -- ECN
           Prod (Leaf (Fin (toNatBin $ binPow 2 4))) $  -- IHL
           Prod (Leaf (Fin (toNatBin $ binPow 2 16))) $ -- TL
           Prod (Leaf (Vect 32 Bool))                   -- Source
                (Leaf (Vect 32 Bool))                   -- Destination
 
-header3 : DT 
+header3 : DT
 header3 = Prod (Leaf (Vect 2 Bool))  $ -- ECN
           Prod (Leaf (Vect 4 Bool))  $ -- IHL
           Prod (Leaf (Vect 16 Bool)) $ -- TL
           Prod (Leaf (Vect 32 Bool))   -- Source
                (Leaf (Vect 32 Bool))   -- Destination
 
-header4 : DT 
+header4 : DT
 header4 = Prod (Leaf (Vect 2 Bool))  $ -- ECN
           Prod (Leaf (Vect 4 Bool))  $ -- IHL
           Prod (Leaf (Vect 16 Bool)) $ -- TL
           Prod (Leaf (Vect 16 Bool)) $ -- Checksum
           Prod (Leaf (Vect 32 Bool))   -- Source
-               (Leaf (Vect 32 Bool))   -- Destination               
+               (Leaf (Vect 32 Bool))   -- Destination

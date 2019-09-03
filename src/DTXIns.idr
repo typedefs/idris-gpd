@@ -18,7 +18,7 @@ data DTX : (top : DT) -> DT -> Type where
   SigmaX : DTX top c -> ((x : interp c) -> DTX top (d x)) -> DTX top (Sigma c d)
   InsX   : (t1 : DT) -> Side -> (interp top -> interp t1) -> DTX top t
 
-mutual   
+mutual
   extendType : {t : DT} -> DTX top t -> DT
   extendType     (ConvX {t2} _)        = t2
   extendType     (ProdX dl dr)         = Prod (extendType dl) (extendType dr)
@@ -31,10 +31,10 @@ mutual
   retractValue (ProdX dl dr)           (ietl, ietr) = [| MkPair (retractValue dl ietl) (retractValue dr ietr) |]
   retractValue (SigmaX dc df)          (it ** ietx) with (retractValue dc it)
     retractValue (SigmaX dc df) (it ** ietx) | Just ic = map (\x => (ic ** x)) (retractValue (df ic) ietx)
-    retractValue (SigmaX dc df) (it ** ietx) | Nothing = absurd ietx  
+    retractValue (SigmaX dc df) (it ** ietx) | Nothing = absurd ietx
   retractValue (InsX t1 LeftSide f)    (_, it)      = Just it
   retractValue (InsX t1 RightSide f)   (it, _)      = Just it
-    
+
 mutual
   extendValue : {t : DT} -> (tx : DTX top t) -> interp top -> interp t -> interp (extendType tx)
   extendValue (ConvX (Convert d _ _)) _     it         = d it
@@ -45,20 +45,20 @@ mutual
 
   retractExtendId : {t : DT} -> (tx : DTX top t) -> (itop : interp top) -> (it : interp t) -> retractValue tx (extendValue tx itop it) = Just it
   retractExtendId (ConvX (Convert _ _ f)) itop  it         = f it
-  retractExtendId (ProdX dl dr)           itop (il, ir)    = 
-    rewrite retractExtendId dl itop il in 
-    rewrite retractExtendId dr itop ir in 
+  retractExtendId (ProdX dl dr)           itop (il, ir)    =
+    rewrite retractExtendId dl itop il in
+    rewrite retractExtendId dr itop ir in
     Refl
-  retractExtendId (SigmaX {c} dc df)      itop (it ** idt) = 
+  retractExtendId (SigmaX {c} dc df)      itop (it ** idt) =
     --rewrite retractExtendId {t=c} dc itop it in
-    really_believe_me ()   
+    really_believe_me ()
   retractExtendId (InsX t1 LeftSide f)    itop  it         = Refl
   retractExtendId (InsX t1 RightSide f)   itop  it         = Refl
 
---copypaste 
+--copypaste
 
 copy : DTX top t
-copy = ConvX idConv  
+copy = ConvX idConv
 
 lenWord : DT
 lenWord = Sigma (Leaf (Fin $ power 2 8)) (\n => Leaf (Vect (toNat n) Bool))
@@ -93,19 +93,19 @@ plusChecksum = InsX (Leaf Bool) LeftSide checksum
   checksum (_ ** xs) = head $ parity xs
 
 retractAndCheckS : {t : DT} -> (tx : DTXS t) -> (interp (extendTypeS tx) -> interp (extendTypeS tx) -> Bool) -> interp (extendTypeS tx) -> Maybe (interp t)
-retractAndCheckS tx chk itx = 
+retractAndCheckS tx chk itx =
  (retractValueS tx itx) >>= \ret => if chk itx (extendValueS tx ret) then Just ret else Nothing
 
 -- 5.1 Beyond Top-Level Insertion
-  
---vecNats : DT 
+
+--vecNats : DT
 --vecNats = Sigma (Leaf Nat) (\len => Leaf (Vect len Nat))
 
 --insertMax : DTXS DTXIns.vecNats
---insertMax = SigmaX copy iMax 
---  where 
+--insertMax = SigmaX copy iMax
+--  where
 --  maxVec : interp (DTXIns.vecNats) -> Nat
 --  maxVec (it ** vs) = ?problem
---  iMax : (len : Nat) -> DTX DTXIns.vecNats (Leaf (Vect len Nat)) 
---  iMax Z     = copy 
---  iMax (S n) = InsX (Leaf Nat) RightSide maxVec 
+--  iMax : (len : Nat) -> DTX DTXIns.vecNats (Leaf (Vect len Nat))
+--  iMax Z     = copy
+--  iMax (S n) = InsX (Leaf Nat) RightSide maxVec

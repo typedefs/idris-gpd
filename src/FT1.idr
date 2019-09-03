@@ -10,9 +10,9 @@ import Util
 data FT : Type where
   Word : Nat -> FT
   Prod : FT -> FT -> FT
-  
+
 ft1 : FT
-ft1 = Word 32 `Prod` Word 32  
+ft1 = Word 32 `Prod` Word 32
 
 interp : FT -> Type
 interp (Word n)     = Vect n Bool
@@ -31,12 +31,12 @@ pp (Prod t1 t2) (x1, x2) = pp t1 x1 ++ pp t2 x2
 {-
 roundTrip' : (f : FT) -> (x : interp f) -> (rem : List Bool) -> parse f (pp f x ++ rem) = Just (x, rem)
 roundTrip' (Word Z)     []       rem = Refl
-roundTrip' (Word (S n)) (x::xs)  rem = 
-  let ih = roundTrip' (Word n) xs rem in 
+roundTrip' (Word (S n)) (x::xs)  rem =
+  let ih = roundTrip' (Word n) xs rem in
   ?wat
-roundTrip' (Prod l r)   (il, ir) rem = 
+roundTrip' (Prod l r)   (il, ir) rem =
   rewrite sym $ appendAssociative (pp l il) (pp r ir) rem in   -- this is how it should go, but idris doesn't agree
-  rewrite roundTrip' l il (pp r ir ++ rem) in                  --                 
+  rewrite roundTrip' l il (pp r ir ++ rem) in                  --
   rewrite roundTrip' r ir rem in                               --
   Refl
 -}

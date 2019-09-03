@@ -14,8 +14,8 @@ data DTX : DT -> Type where
   ProdX  : DTX l -> DTX r -> DTX (Prod l r)
   SigmaX : DTX c -> ((x : interp c) -> DTX (d x)) -> DTX (Sigma c d)
 
-copy : DTX t 
-copy = ConvX idConv  
+copy : DTX t
+copy = ConvX idConv
 
 -- decoupled version of FT2.ft3
 lenWord : DT
@@ -27,7 +27,7 @@ encodeLenWord = SigmaX (ConvX int8) (\_ => copy)
   int8 : Conversion (Leaf (Fin $ power 2 8)) (Leaf (Vect 8 Bool))
   int8 = Convert encodeFin (Just . decodeFin) (\x => really_believe_me x)  -- YOLO
 
-mutual   
+mutual
   extendType : {t : DT} -> DTX t -> DT
   extendType (ConvX {t2} _) = t2
   extendType (ProdX dl dr)  = Prod (extendType dl) (extendType dr)
@@ -48,36 +48,36 @@ mutual
 
   retractExtendId : {t : DT} -> (tx : DTX t) -> (d : interp t) -> retractValue tx (extendValue tx d) = Just d
   retractExtendId (ConvX (Convert _ _ f))  d          = f d
-  retractExtendId (ProdX dl dr)           (il, ir)    = 
-    rewrite retractExtendId dl il in 
-    rewrite retractExtendId dr ir in 
+  retractExtendId (ProdX dl dr)           (il, ir)    =
+    rewrite retractExtendId dl il in
+    rewrite retractExtendId dr ir in
     Refl
-  retractExtendId (SigmaX {c} dc df)      (it ** idt) = 
+  retractExtendId (SigmaX {c} dc df)      (it ** idt) =
     --rewrite retractExtendId {t=c} dc it in
-    really_believe_me () 
-    
+    really_believe_me ()
+
 lenWordEnc : DT
 lenWordEnc = extendType encodeLenWord
 
 ll : IsLowLevel DTX.lenWordEnc
 ll = SigmaILL LeafILL (\x => LeafILL)
 
-parseLWE : List Bool -> Maybe (interp DTX.lenWordEnc, List Bool) 
+parseLWE : List Bool -> Maybe (interp DTX.lenWordEnc, List Bool)
 parseLWE = parse ll
 
 parseWithoutRest : {t : DT} -> IsLowLevel t -> List Bool -> Maybe (interp t)
-parseWithoutRest ill xs = 
-  case parse ill xs of 
+parseWithoutRest ill xs =
+  case parse ill xs of
     Just (v, []) => Just v
     _ => Nothing
 
 parseLW : List Bool -> Maybe (interp DTX.lenWord)
-parseLW xs = parseWithoutRest ll xs >>= retractValue encodeLenWord 
+parseLW xs = parseWithoutRest ll xs >>= retractValue encodeLenWord
 
 -- 4.1 Repeated Extension
 
-data DTXStar : DT -> DT -> Type where 
-  Base : DTXStar t t 
+data DTXStar : DT -> DT -> Type where
+  Base : DTXStar t t
   Step : DTXStar t1 t2 -> (tx : DTX t2) -> DTXStar t1 (extendType tx)
 
 extendTypeStar : DTXStar t1 t2 -> DT
